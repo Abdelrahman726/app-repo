@@ -17,13 +17,15 @@ pipeline {
       steps {
         withCredentials([usernamePassword(credentialsId: 'dockerhub',
             usernameVariable: 'U', passwordVariable: 'P')]) {
-          sh '''
-            echo "$P" | docker login -u "$U" --password-stdin
-            docker push $IMAGE:$TAG
-          '''
+          sh 'echo "$P" | docker login -u "$U" --password-stdin'
+          retry(3) {
+            sh 'docker push $IMAGE:$TAG'
+          }
         }
       }
     }
+    
+    
     stage('Update GitOps repo') {
       steps {
         withCredentials([usernamePassword(credentialsId: 'github',
